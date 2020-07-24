@@ -1,26 +1,110 @@
-provider "aws" {
-  region     = "ap-southeast-1"
-  access_key = "AKIAJP5XI3UAHB7XKEGQ"
-  secret_key = "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"
-
+# Internet VPC
+resource "aws_vpc" "main" {
+    cidr_block = "10.0.0.0/16"
+    instance_tenancy = "default"
+    enable_dns_support = "true"
+    enable_dns_hostnames = "true"
+    enable_classiclink = "false"
+    tags {
+        Name = "main"
+    }
 }
 
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
 
+# Subnets
+resource "aws_subnet" "main-public-1" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.1.0/24"
+    map_public_ip_on_launch = "true"
+    availability_zone = "us-west-2a"
 
-  name = "my-vpc"
-  cidr = "172.31.0.0/16"
+    tags {
+        Name = "main-public-1"
+    }
+}
+resource "aws_subnet" "main-public-2" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.2.0/24"
+    map_public_ip_on_launch = "true"
+    availability_zone = "us-west-2b"
 
-  azs             = ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"]
-  private_subnets = ["172.31.1.0/24", "172.31.2.0/24", "172.31.3.0/24"]
-  public_subnets  = ["172.31.101.0/24", "172.31.102.0/24", "172.31.103.0/24"]
+    tags {
+        Name = "main-public-2"
+    }
+}
+resource "aws_subnet" "main-public-3" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.3.0/24"
+    map_public_ip_on_launch = "true"
+    availability_zone = "us-west-2c"
 
-  enable_nat_gateway = true
-  enable_vpn_gateway = true
+    tags {
+        Name = "main-public-3"
+    }
+}
+resource "aws_subnet" "main-private-1" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.4.0/24"
+    map_public_ip_on_launch = "false"
+    availability_zone = "us-west-2a"
 
-  tags = {
-    Terraform = "true"
-    Environment = "dev"
-  }
+    tags {
+        Name = "main-private-1"
+    }
+}
+resource "aws_subnet" "main-private-2" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.5.0/24"
+    map_public_ip_on_launch = "false"
+    availability_zone = "us-west-2b"
+
+    tags {
+        Name = "main-private-2"
+    }
+}
+resource "aws_subnet" "main-private-3" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "10.0.6.0/24"
+    map_public_ip_on_launch = "false"
+    availability_zone = "us-west-2c"
+
+    tags {
+        Name = "main-private-3"
+    }
+}
+
+# Internet GW
+resource "aws_internet_gateway" "main-gw" {
+    vpc_id = "${aws_vpc.main.id}"
+
+    tags {
+        Name = "main"
+    }
+}
+
+# route tables
+resource "aws_route_table" "main-public" {
+    vpc_id = "${aws_vpc.main.id}"
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = "${aws_internet_gateway.main-gw.id}"
+    }
+
+    tags {
+        Name = "main-public-1"
+    }
+}
+
+# route associations public
+resource "aws_route_table_association" "main-public-1-a" {
+    subnet_id = "${aws_subnet.main-public-1.id}"
+    route_table_id = "${aws_route_table.main-public.id}"
+}
+resource "aws_route_table_association" "main-public-2-a" {
+    subnet_id = "${aws_subnet.main-public-2.id}"
+    route_table_id = "${aws_route_table.main-public.id}"
+}
+resource "aws_route_table_association" "main-public-3-a" {
+    subnet_id = "${aws_subnet.main-public-3.id}"
+    route_table_id = "${aws_route_table.main-public.id}"
 }
