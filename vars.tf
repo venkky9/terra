@@ -5,7 +5,7 @@ variable "PATH_TO_PRIVATE_KEY" {
   default = "oregon"
 }
 variable "PATH_TO_PUBLIC_KEY" {
-  default = "mykey.pub"
+  default = "oregon.pub"
 }
 variable "AMIS" {
   type = "map"
